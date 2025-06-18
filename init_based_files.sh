@@ -7,17 +7,21 @@ set -e
 APP_NAME="nls-auth"
 MODULE_NAME="auth"
 PORT=4002
-DB_PORT=5432
-DB_NAME="auth_db"
+DB_PORT=5433
+DB_NAME="nls_db"
 
 echo "Create initial files for $APP_NAME project..."
 
-# Database configuration
-cat > internal/handlers/database/orm.go <<EOF
-package database
+# api/v1/auth/db/postgres.go
+cat > api/v1/auth/db/postgres.go <<EOF
+package db
 
 import (
+	"fmt"
 	"log"
+	"nls-auth/internal/models"
+	"os"
+	_ "github.com/lib/pq"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,12 +30,124 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
-	dsn := "host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable"
+	host := os.Getenv("PG_HOST")
+	user := os.Getenv("PG_USER")
+	password := os.Getenv("PG_PASSWORD")
+	dbname := os.Getenv("PG_DB")
+	port := os.Getenv("PG_PORT")
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		host, user, password, dbname, port)
+
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Erreur connexion PostgreSQL: ", err)
 	}
+
+	err = DB.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatal("Erreur migration DB: ", err)
+	}
+}
+
+type PG_DB struct {
+	DB *gorm.DB
+}
+
+func New(db *gorm.DB) *PG_DB {
+	return &PG_DB{DB: db}
+}
+EOF
+
+# constants/application.go
+cat > internal/constants/application.go <<EOF
+package constants
+
+type AppKey string
+type ctxKey string
+
+const (
+	ApplicationCtx     ctxKey = "application"
+	AuthTokenCtx       ctxKey = "auth_token"
+	AuthTokenParsedCtx ctxKey = "auth_token_parsed"
+)
+
+type localsKey string
+
+const (
+	ConfigLocals    localsKey = "config"
+	JwtUserLocals   localsKey = "jwt_user"
+	DBLocals        localsKey = "db"
+	RequestDBLocals localsKey = "request_db"
+)
+EOF
+
+# Database configuration
+cat > internal/handlers/database/orm.go <<EOF
+package database
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"nls-auth/internal/models"
+	"os"
+
+	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+
+func init() {
+	_ = godotenv.Load()
+}
+
+var DB *gorm.DB
+
+func InitDB() (*gorm.DB, error) {
+	host := os.Getenv("PG_HOST")
+	user := os.Getenv("PG_USER")
+	password := os.Getenv("PG_PASSWORD")
+	dbname := os.Getenv("PG_DB")
+	port := os.Getenv("PG_PORT")
+
+	// Connexion temporaire à la base 'postgres'
+	connStr := os.Getenv("CONNEXION_STRING")
+
+	// postgresDsn := fmt.Sprintf("host=%s user=%s password=%s dbname=nls_db port=%s sslmode=disable", host, user, password, port)
+	sqlDB, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal("Erreur connexion PostgreSQL (postgres): ", err)
+	}
+	defer sqlDB.Close()
+
+	// Vérifie si la base existe, sinon la crée
+	var exists bool
+	checkQuery := fmt.Sprintf("SELECT 1 FROM pg_database WHERE datname = '%s'", dbname)
+	err = sqlDB.QueryRow(checkQuery).Scan(&exists)
+	if err == sql.ErrNoRows {
+		_, err = sqlDB.Exec("CREATE DATABASE " + dbname)
+		if err != nil {
+			log.Fatal("Erreur création DB: ", err)
+		}
+	} else if err != nil && err != sql.ErrNoRows {
+		log.Fatal("Erreur vérification DB: ", err)
+	}
+
+	// Connexion GORM normale
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbname, port)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Erreur connexion PostgreSQL: ", err)
+	}
+
+	err = db.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatal("Erreur migration DB: ", err)
+	}
+	return db, err
 }
 EOF
 
@@ -74,8 +190,8 @@ cat > internal/middlewares/request_db_middleware.go <<EOF
 package middlewares
 
 import (
-	"nls-go-messaging/api/v1/messaging/db"
-	"nls-go-messaging/internal/constants"
+	"$APP_NAME/api/v1/auth/db"
+	"$APP_NAME/internal/handlers/database/constants"
 
 	"github.com/gofiber/fiber/v2"
 )

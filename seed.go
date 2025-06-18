@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"nls-auth/internal/models"
-    "os"
+	"os"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -11,11 +11,11 @@ import (
 
 func SeedDB() {
 	var DB *gorm.DB
-    username := os.Getenv("FAKE_USER")
-    password := os.Getenv("FAKE_PASSWORD")
-    email := os.Getenv("FAKE_EMAIL")
+	username := os.Getenv("FAKE_USER")
+	password := os.Getenv("FAKE_PASSWORD")
+	email := os.Getenv("FAKE_EMAIL")
 	users := []models.User{
-		{Username: username, Password: password, email: email},
+		{Username: username, Password: password, Email: email},
 	}
 
 	for _, u := range users {

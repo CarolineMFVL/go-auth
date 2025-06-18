@@ -7,8 +7,13 @@ set -e
 APP_NAME="nls-auth"
 MODULE_NAME="auth"
 PORT=4002
-DB_PORT=5432
-DB_NAME="auth_db"
+DB_PORT=5433
+DB_NAME="nls_db"
+
+# Install swagger
+go install github.com/swaggo/swag/cmd/swag@latest
+
+source ~/.zshrc  
 
 echo "Create initial files for $APP_NAME project..."
 

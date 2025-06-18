@@ -1,0 +1,20 @@
+openapi: 3.0.0
+info:
+  title: API auth
+  version: "1.0.0"
+  description: API authentication and authorization
+servers:
+  - url: http://localhost:$PORT
+paths:
+  /login:
+    post:
+      summary: User login
+      responses:
+        "200":
+          description: Successful login
+  /register:
+    post:
+      summary: Successful user registration
+      responses:
+        "201":
+          description: User created successfully

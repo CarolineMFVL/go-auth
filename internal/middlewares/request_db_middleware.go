@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"nls-go-messaging/api/v1/messaging/db"
-	"nls-go-messaging/internal/constants"
+	"nls-auth/api/v1/auth/db"
+	"nls-auth/constants"
 
 	"github.com/gofiber/fiber/v2"
 )
