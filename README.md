@@ -2,6 +2,20 @@
 
 API de messagerie en Go avec Gorilla Mux, Swagger, PostgreSQL.
 
+## Prepare API
+
+Run
+
+`bash init_config.sh`
+
+Then
+
+`make install`
+
+Then
+
+`make open-api`
+
 ## Lancer en local
 
 ```sh
