@@ -225,6 +225,13 @@ EOF
 
 # main.go
 cat > main.go <<EOF
+// @title API Messaging
+// @version 1.0
+// @description API de messagerie sécurisée par JWT
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" suivi d'un espace et de votre token JWT. Exemple : "Bearer {token}"
 package main
 
 import (
@@ -241,6 +248,10 @@ import (
     httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" suivi d'un espace et de votre token JWT. Exemple : "Bearer {token}"
 func main() {
     utils.InitLogger()
     database.InitDB()
@@ -281,6 +292,22 @@ import (
     httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// ExampleHandler godoc
+// @Summary Example route protected JWT
+// @Description Get an example by ID
+// @ID example-handler
+// @Accept  json
+// @Param Authorization header string true "Bearer token"
+// @Success 200 {object} handlers.ExampleResponse
+// @Failure 400 {object} handlers.ErrorResponse
+// @Failure 401 {object} handlers.ErrorResponse
+// @Failure 500 {object} handlers.ErrorResponse
+// @Router /example [get]
+// @Tags example
+// @Produce  json
+// @Param exampleId path string true "ID of example"
+// @Security BearerAuth
+// @Router /example/{exampleId} [get]
 func ExampleHandler(w http.ResponseWriter, r *http.Request) {
     utils.InitLogger()
     database.InitDB()
@@ -395,6 +422,63 @@ type User struct {
 	Email    string `gorm:"unique"`
 }
 EOF
+
+# error-response.go
+cat > internal/utils/error_response_test.go <<EOF
+package utils
+import (
+
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func RespondWithErrorTest(t *testing.T) {
+	rr := httptest.NewRecorder()
+	RespondWithError(rr, http.StatusBadRequest, "Error test")
+
+	if rr.Code != http.StatusBadRequest {
+		t.Errorf("status code wanted %d, but got %d", http.StatusBadRequest, rr.Code)
+	}
+
+	var resp map[string]string
+	if err := json.NewDecoder(rr.Body).Decode(&resp); err != nil {
+		t.Fatalf("JSON decoding error: %v", err)
+	}
+	if resp["error"] != "Error test" {
+		t.Errorf("expected 'Error test', got '%s'", resp["error"])
+	}
+}
+EOF
+
+# error-response.go
+cat > internal/utils/error_response.go <<EOF
+package utils
+import (
+
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+package utils
+
+import (
+	"encoding/json"
+	"net/http"
+)
+
+func RespondWithError(w http.ResponseWriter, code int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	json.NewEncoder(w).Encode(map[string]string{"error": message})
+
+}
+EOF
+
+
 
 
 echo "Base files created successfully for $APP_NAME project."

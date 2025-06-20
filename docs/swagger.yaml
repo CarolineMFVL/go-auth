@@ -1,4 +1,6 @@
 info:
   contact: {}
+  title: API Authentification
+  version: "1.0"
 paths: {}
 swagger: "2.0"
