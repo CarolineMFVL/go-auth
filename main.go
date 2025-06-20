@@ -27,8 +27,12 @@ func main() {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
-	r.HandleFunc("/example", handlers.ExampleHandler).Methods("POST")
 	r.HandleFunc("/ws/{threadId}", handlers.HandleWebSocket)
+	r.HandleFunc("/auth/login", handlers.LoginHandler)
+	//r.HandleFunc("/auth/register", handlers.RegisterHandler)
+	// r.HandleFunc("/auth/refresh", handlers.RefreshHandler)
+	//r.HandleFunc("/auth/logout", handlers.LogoutHandler)
+	//r.HandleFunc("/auth/verify", handlers.VerifyHandler)
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Bienvenue sur l'API Messaging"))
 	})

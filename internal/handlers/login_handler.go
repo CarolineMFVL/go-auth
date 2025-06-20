@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
-var jwtKey = []byte(os.Getenv("SECRET_JWT_KEY")) // À stocker dans une variable d'env en prod
+var jwtKey = []byte(os.Getenv("SECRET_JWT_KEY"))
+var _ = strings.ReplaceAll(os.Getenv("CREDS"), `\n`, "\n") // keysEnvVar = For testing purposes, you can set this environment variable to a JSON string containing email and password pairs.
 
 type Credentials struct {
 	Email    string `json:"email"`
