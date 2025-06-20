@@ -33,3 +33,14 @@ Use HTTPS to protect tokens in transit.
 Send the access token in the header:
 
 `Authorization: Bearer <access_token>`
+
+### Refresh Token Storage and Blacklisting
+
+Store refresh tokens securely if you want to support logout or token blacklisting:
+
+- **Server-side storage:** Save refresh tokens in a secure database table associated with the user. This allows you to revoke (blacklist) tokens on logout or in case of compromise.
+- **Token rotation:** Issue a new refresh token each time one is used, and invalidate the previous one.
+- **Blacklist mechanism:** Maintain a blacklist of revoked tokens and check it on each refresh request.
+- **Expiration:** Always set an expiration time for refresh tokens and periodically clean up expired tokens from storage.
+
+**Best practice:** Never store refresh tokens in client-side insecure storage (like localStorage). Prefer HTTP-only cookies or server-side storage for maximum security.
