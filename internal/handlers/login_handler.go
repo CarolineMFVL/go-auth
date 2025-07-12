@@ -11,7 +11,15 @@ import (
 	"github.com/google/uuid"
 )
 
-var jwtKey = []byte(os.Getenv("SECRET_JWT_KEY"))
+var jwtKey []byte
+
+func init() {
+	secret := os.Getenv("SECRET_JWT_KEY")
+	if secret == "" {
+		log.Fatal("SECRET_JWT_KEY environment variable is not set or is empty")
+	}
+	jwtKey = []byte(secret)
+}
 var credsEnvVar = os.Getenv("CREDS") // keysEnvVar = For testing purposes, you can set this environment variable to a JSON string containing email and password pairs.
 var parsedCredentials []Credentials
 if credsEnvVar != "" {
