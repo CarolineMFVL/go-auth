@@ -7,7 +7,7 @@ set -e
 APP_NAME="nls-auth"
 MODULE_NAME="auth"
 PORT=4002
-DB_PORT=5433
+DB_PORT=5432
 DB_NAME="nls_db"
 
 echo "Create initial files for $APP_NAME project..."
@@ -224,7 +224,7 @@ func JWTMiddleware(c *fiber.Ctx) error {
 EOF
 
 # main.go
-cat > main.go <<EOF
+cat > cmd/go-auth/main.go <<EOF
 // @title API Messaging
 // @version 1.0
 // @description API de messagerie sécurisée par JWT

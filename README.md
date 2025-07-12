@@ -16,7 +16,7 @@
 
 ## Documentation Swagger
 
-Accédez à [http://localhost:4000/swagger/index.html](http://localhost:5433/swagger/index.html)
+Accédez à [http://localhost:4002/swagger/index.html](http://localhost:5432/swagger/index.html)
 
 ## Installation
 
@@ -60,7 +60,7 @@ Démarrez les services avec Docker Compose :
 1. Créez le rôle/utilisateur dans PostgreSQL
    Dans un terminal, lancez :
 
-`psql -h localhost -p 5433 -U postgres -d nls_db`
+`psql -h localhost -p 5432 -U postgres -d nls_db`
 
 postgres
 Puis, dans le shell psql :
@@ -76,7 +76,7 @@ Lancez PostgreSQL et configurez les variables d'environnement nécessaires (PG_H
 
 Lancez l'application :
 
-`go run main.go`
+`go run cmd/go-auth/main.go`
 
 Documentation API
 La documentation Swagger est générée automatiquement. Pour la générer, utilisez la commande suivante :

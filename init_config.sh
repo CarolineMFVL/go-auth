@@ -7,7 +7,7 @@ set -e
 APP_NAME="nls-auth"
 MODULE_NAME="auth"
 PORT=4002
-DB_PORT=5433
+DB_PORT=5432
 DB_NAME="nls_db"
 
 # Install swagger
@@ -106,7 +106,7 @@ docker-compose up
 
 ## Documentation Swagger
 
-Accédez à [http://localhost:4000/swagger/index.html](http://localhost:$DB_PORT/swagger/index.html)
+Accédez à [http://localhost:$PORT/swagger/index.html](http://localhost:$DB_PORT/swagger/index.html)
 EOF
 
 # Makefile
