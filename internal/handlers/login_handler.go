@@ -12,7 +12,14 @@ import (
 )
 
 var jwtKey = []byte(os.Getenv("SECRET_JWT_KEY"))
-var _ = strings.ReplaceAll(os.Getenv("CREDS"), `\n`, "\n") // keysEnvVar = For testing purposes, you can set this environment variable to a JSON string containing email and password pairs.
+var credsEnvVar = os.Getenv("CREDS") // keysEnvVar = For testing purposes, you can set this environment variable to a JSON string containing email and password pairs.
+var parsedCredentials []Credentials
+if credsEnvVar != "" {
+    credsEnvVar = strings.ReplaceAll(credsEnvVar, `\n`, "\n")
+    if err := json.Unmarshal([]byte(credsEnvVar), &parsedCredentials); err != nil {
+        panic("Failed to parse CREDS environment variable: " + err.Error())
+    }
+}
 
 type Credentials struct {
 	Email    string `json:"email"`
