@@ -73,10 +73,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessTokenString, _ := GenerateJWT(userID, creds.Email, "access")
+	accessTokenString, err := GenerateJWT(userID, creds.Email, "access")
+	if err != nil {
+		http.Error(w, "Could not create access token", http.StatusInternalServerError)
+		return
+	}
 	refreshTokenString, err := GenerateJWT(userID, creds.Email, "refresh")
 	if err != nil {
-		http.Error(w, "Could not create token", http.StatusInternalServerError)
+		http.Error(w, "Could not create refresh token", http.StatusInternalServerError)
 		return
 	}
 
