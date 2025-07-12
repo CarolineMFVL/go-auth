@@ -50,8 +50,15 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Find user in database by email
-	// If user does not exist 404 Not Found
-	userID := uuid.New().String()
+	userID, err := GetUserIDByEmail(creds.Email)
+	if err != nil {
+		if err == ErrUserNotFound {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	// Compare password with bcrypt
 	if creds.Password != "testpassword" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
