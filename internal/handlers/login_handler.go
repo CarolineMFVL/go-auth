@@ -1,13 +1,38 @@
+// Package handlers provides HTTP handler functions for authentication and user management.
+//
+// This file implements the login handler, JWT token generation and validation, and user lookup by email.
+//
+// Functions:
+//   - LoginHandler: Handles user login, verifies credentials, and returns JWT access and refresh tokens.
+//   - ValidateJWT: Validates and decodes JWT tokens, returning claims if valid.
+//   - GenerateJWT: Generates signed JWT tokens for access (15 min) or refresh (24h).
+//   - GetUserByEmail: Retrieves a user from the database by email.
+//
+// Types:
+//   - Credentials: Represents user login credentials (email and password).
+//   - Claims: JWT claims structure including username and registered claims.
+//
+// Environment Variables:
+//   - SECRET_JWT_KEY: Secret key used for signing JWT tokens. Must be set in the environment.
+//
+// Errors:
+//   - Returns appropriate HTTP status codes and error messages for invalid requests, unauthorized access, user not found, and internal server errors.
 package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
+	"nls-auth/internal/handlers/database"
+	"nls-auth/internal/models"
+
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 var jwtKey []byte
@@ -18,14 +43,6 @@ func init() {
 		log.Fatal("SECRET_JWT_KEY environment variable is not set or is empty")
 	}
 	jwtKey = []byte(secret)
-}
-var credsEnvVar = os.Getenv("CREDS") // keysEnvVar = For testing purposes, you can set this environment variable to a JSON string containing email and password pairs.
-var parsedCredentials []Credentials
-if credsEnvVar != "" {
-    credsEnvVar = strings.ReplaceAll(credsEnvVar, `\n`, "\n")
-    if err := json.Unmarshal([]byte(credsEnvVar), &parsedCredentials); err != nil {
-        panic("Failed to parse CREDS environment variable: " + err.Error())
-    }
 }
 
 type Credentials struct {
@@ -52,14 +69,15 @@ type Claims struct {
 // @Router /login [post]
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
-	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&creds)
+	if err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 	// Find user in database by email
-	userID, err := GetUserIDByEmail(creds.Email)
+	user, err := GetUserByEmail(creds.Email)
 	if err != nil {
-		if err == ErrUserNotFound {
+		if err == gorm.ErrRecordNotFound {
 			http.Error(w, "User not found", http.StatusNotFound)
 			return
 		}
@@ -67,17 +85,18 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Compare password with bcrypt
-	if creds.Password != "testpassword" {
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
+	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	accessTokenString, err := GenerateJWT(userID, creds.Email, "access")
+	accessTokenString, err := GenerateJWT(user.ID, creds.Email, "access")
 	if err != nil {
 		http.Error(w, "Could not create access token", http.StatusInternalServerError)
 		return
 	}
-	refreshTokenString, err := GenerateJWT(userID, creds.Email, "refresh")
+	refreshTokenString, err := GenerateJWT(user.ID, creds.Email, "refresh")
 	if err != nil {
 		http.Error(w, "Could not create refresh token", http.StatusInternalServerError)
 		return
@@ -104,7 +123,7 @@ func ValidateJWT(tokenStr string) (*Claims, error) {
 // userID: unique user identifier (string, usually a UUID)
 // email: user's email
 // tokenType: "access" (15 min) or "refresh" (24h)
-func GenerateJWT(userID string, email string, tokenType string) (string, error) {
+func GenerateJWT(userID uuid.UUID, email string, tokenType string) (string, error) {
 	exp := time.Now().Add(time.Hour * 24).Unix()
 	if tokenType == "access" {
 		exp = time.Now().Add(time.Minute * 15).Unix() // 15 minutes pour un token d'accès
@@ -118,4 +137,17 @@ func GenerateJWT(userID string, email string, tokenType string) (string, error) 
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtKey)
+}
+
+// Example function to get user by email
+func GetUserByEmail(email string) (*models.User, error) {
+	db := database.GetDB() // Assuming you have a GetDB() that returns *gorm.DB
+	var user models.User
+	if err := db.Where("email = ?", email).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return &user, nil
 }
