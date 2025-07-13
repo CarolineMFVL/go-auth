@@ -4,16 +4,16 @@ package main
 
 import (
 	"log"
-	"net/http"
+	"os"
+
 	"nls-auth/internal/handlers"
 	"nls-auth/internal/handlers/database"
-	"os"
+	"nls-auth/internal/middlewares"
 
 	_ "nls-auth/docs"
 	"nls-auth/internal/utils"
 
-	"github.com/gorilla/mux"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
@@ -24,19 +24,23 @@ func main() {
 		log.Println("Base de données seedée")
 		return
 	}
+	c := new(fiber.Ctx)
+	// Initialize Fiber app
+	app := fiber.New()
 
-	r := mux.NewRouter()
-	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
-	r.HandleFunc("/ws/{threadId}", handlers.HandleWebSocket)
-	r.HandleFunc("/auth/login", handlers.LoginHandler)
-	r.HandleFunc("/auth/register", handlers.RegisterHandler)
-	r.HandleFunc("/auth/refresh", handlers.RefreshHandler)
-	r.HandleFunc("/auth/logout", handlers.LogoutHandler)
-	r.HandleFunc("/auth/verify", handlers.VerifyHandler)
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Bienvenue sur l'API Messaging"))
-	})
+	// r := mux.NewRouter()
+	app.Use(middlewares.RequestDBMiddleware(c))
+	/* app.Get("/swagger/*", adaptator.HTTPHandler(httpSwagger.WrapHandler))
+	app.Get("/swagger/doc.json", fiber.HTTPHandler(httpSwagger.Handler().DocJSONHandler())) */
+	app.Post("/auth/login", handlers.LoginHandler)
+	/* 	app.Post("/auth/register", handlers.RegisterHandler)
+	   	app.Post("/auth/refresh", handlers.RefreshHandler)
+	   	app.Post("/auth/logout", handlers.LogoutHandler)
+	   	app.Get("/auth/verify", handlers.VerifyHandler)
+	   	app.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	   		w.Write([]byte("Bienvenue sur l'API Messaging"))
+	   	}) */
 
 	log.Println("Serveur sur :4002")
-	log.Fatal(http.ListenAndServe(":4002", r))
+	log.Fatal(app.Listen(":4002"))
 }

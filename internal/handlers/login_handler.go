@@ -20,15 +20,14 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
 	"nls-auth/internal/handlers/database"
 	"nls-auth/internal/models"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -67,43 +66,47 @@ type Claims struct {
 // @Failure 404 {string} string "User not found"
 // @Failure 500 {string} string "Internal server error"
 // @Router /login [post]
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(c *fiber.Ctx) error {
 	var creds Credentials
-	err := json.NewDecoder(r.Body).Decode(&creds)
+	err := c.BodyParser((&creds))
 	if err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request",
+		})
 	}
 	// Find user in database by email
 	user, err := GetUserByEmail(creds.Email)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			http.Error(w, "User not found", http.StatusNotFound)
-			return
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "User not found",
+			})
 		}
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Internal server error",
+		})
 	}
 	// Compare password with bcrypt
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
 	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
 	accessTokenString, err := GenerateJWT(user.ID, creds.Email, "access")
 	if err != nil {
-		http.Error(w, "Could not create access token", http.StatusInternalServerError)
-		return
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not create access token"})
 	}
 	refreshTokenString, err := GenerateJWT(user.ID, creds.Email, "refresh")
 	if err != nil {
-		http.Error(w, "Could not create refresh token", http.StatusInternalServerError)
-		return
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not create refresh token"})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"refresh_token": refreshTokenString, "access_token": accessTokenString})
+	c.JSON(fiber.Map{
+		"refresh_token": refreshTokenString,
+		"access_token":  accessTokenString,
+	})
+	return nil
 }
 
 // ValidateJWT verifies and decodes a JWT token.
@@ -141,6 +144,10 @@ func GenerateJWT(userID uuid.UUID, email string, tokenType string) (string, erro
 
 // Example function to get user by email
 func GetUserByEmail(email string) (*models.User, error) {
+	/* context := c.Context()
+	if context == nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Context is nil")
+	} */
 	db := database.GetDB() // Assuming you have a GetDB() that returns *gorm.DB
 	var user models.User
 	if err := db.Where("email = ?", email).First(&user).Error; err != nil {

@@ -1,11 +1,8 @@
 package handlers
 
 import (
-	"net/http"
+	"github.com/gofiber/fiber/v2"
 )
 
-func RefreshHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement token refresh logic
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Token refreshed"))
+func RefreshHandler(c *fiber.Ctx) {
 }
