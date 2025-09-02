@@ -2,10 +2,14 @@ package handlers
 
 import (
 	"net/http"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-func VerifyHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implement verification logic (e.g., verify JWT, email, etc.)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Verification successful"))
+func VerifyHandler(c *fiber.Ctx) error {
+	// TODO: Implement verify logic (e.g., invalidate tokens, clear cookies)
+	c.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "Verify successful",
+	})
+	return nil
 }

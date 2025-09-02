@@ -8,7 +8,7 @@ import (
 )
 
 func RequestDBMiddleware(c *fiber.Ctx) error {
-	//application := c.Context().Value(constants.ApplicationCtx).(constants.AppKey)
+	// application := c.Context().Value(constants.ApplicationCtx).(constants.AppKey)
 	DB := c.Locals(constants.DBLocals).(*db.PG_DB)
 
 	if c != nil {
