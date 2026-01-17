@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"nls-auth/internal/models"
 	"os"
+
+	"nls-auth/internal/models"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -61,4 +62,9 @@ func InitDB() (*gorm.DB, error) {
 		log.Fatal("Erreur migration DB: ", err)
 	}
 	return db, err
+}
+
+// Add this getter function:
+func GetDB() *gorm.DB {
+	return DB
 }

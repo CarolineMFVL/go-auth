@@ -1,35 +1,36 @@
 # Go Messaging API
 
-**nls-auth** est un microservice backend écrite en Go permettant une authentification. Elle utilise PostgreSQL comme base de données et GORM comme ORM.
+**nls-auth** is a backend microservice written in Go for authentication. It uses PostgreSQL as the database and GORM as the ORM.
 
-## Fonctionnalités
+## Features
 
-- Authentification des utilisateurs (inscription et connexion)
-- Seed de données pour initialiser la base
-- API REST documentée avec Swagger
+- User authentication (registration and login)
+- Data seeding to initialize the database
+- REST API documented with Swagger
 
-## Prérequis
+## Prerequisites
 
-- [Go](https://golang.org/) 1.22 ou supérieur
-- [Docker](https://www.docker.com/) et [Docker Compose](https://docs.docker.com/compose/)
+- [Go](https://golang.org/) 1.22 or higher
+- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/)
 - PostgreSQL
 
-## Documentation Swagger
+## Swagger Documentation
 
-Accédez à [http://localhost:4000/swagger/index.html](http://localhost:5433/swagger/index.html)
+Access at [http://localhost:4002/swagger/index.html]  
+Or [http://localhost:4002/swagger/doc.json]
 
-## Installation
+## Installations
 
-1. Clonez le repository :
+1. Clone the repository:
 
    ```bash
-   git clone https://github.com/votre-utilisateur/go-messaging.git
+   git clone https://github.com/your-username/go-messaging.git
    cd go-messaging
    ```
 
 ## Prepare API
 
-@Todo : Verify and change variables if needed.
+@Todo: Verify and change variables if needed.
 
 Run
 
@@ -51,42 +52,21 @@ Then
 
 `make open-api`
 
-Lancer l'application
-Avec Docker
-Démarrez les services avec Docker Compose :
+Start the application  
+With Docker  
+Start the services with Docker Compose:
 
 `docker-compose up --build`
 
-1. Créez le rôle/utilisateur dans PostgreSQL
-   Dans un terminal, lancez :
+1. Create the role/user in PostgreSQL  
+   In a terminal, run:
 
-`psql -h localhost -p 5433 -U postgres -d nls_db`
+`psql -h localhost -p 5432 -U postgres -d nls_db`
 
-postgres
-Puis, dans le shell psql :
+postgres  
+Then, in the psql shell:
 
-````CREATE ROLE cmf WITH LOGIN PASSWORD 'test1234';
+````sql
+CREATE ROLE cmf WITH LOGIN PASSWORD 'test1234';
 ALTER ROLE cmf CREATEDB;
-GRANT ALL ON SCHEMA public TO cmf;```
-
-L'application sera disponible sur http://localhost:4000.
-
-En local
-Lancez PostgreSQL et configurez les variables d'environnement nécessaires (PG_HOST, PG_USER, PG_PASSWORD, PG_DB, PG_PORT).
-
-Lancez l'application :
-
-`go run main.go`
-
-Documentation API
-La documentation Swagger est générée automatiquement. Pour la générer, utilisez la commande suivante :
-
-`make open-api`
-
-Tests
-Pour exécuter les tests, utilisez la commande suivante :
-
-`go test ./...`
-
-
-````
+GRANT ALL ON SCHEMA public TO cmf;

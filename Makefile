@@ -6,7 +6,7 @@ install:
 
 open-api:
 		@echo "Génération de la documentation OpenAPI..."
-		swag init --output ./docs --generalInfo main.go
+		swag init --output ./docs --generalInfo ./cmd/go-auth/main.go
 
 format:
 	@echo "🎨 Formatage du code Go..."
@@ -20,7 +20,7 @@ PORT=4002
 
 seed:
 	@echo "Seeding database..."
-	SEED_DB=1 go run main.go
+	SEED_DB=1 go run ./cmd/go-auth/main.go
 
 reset:
 	@echo "Resetting database..."
@@ -30,7 +30,7 @@ reset:
 
 run:
 	@echo "Lancement de  sur :"
-	go run main.go
+	go run cmd/go-auth/main.go
 
 build:
 	go build -o 

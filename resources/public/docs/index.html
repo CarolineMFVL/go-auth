@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!-- Important: must specify -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+
+    <!-- Important: rapi-doc uses utf8 characters -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <script type="module" src="/docs/rapidoc-9.3.7-min.js"></script>
+  </head>
+  <body>
+    <rapi-doc
+      render-style="read"
+      text-color="#5f90cf"
+      spec-url="/docs/open-api.yaml"
+      allow-server-selection="false"
+      show-header="false"
+      primary-color="#2d87e2"
+      regular-font="Roboto"
+      header-color="#f5f9fb"
+      nav-bg-color="#045091"
+      nav-text-color="#fff"
+      theme="light"
+      allow-search="false"
+      allow-advanced-search="false"
+      bg-color="#f5f9fb"
+      show-method-in-nav-bar="as-colored-text"
+      nav-item-spacing="relaxed"
+    >
+      <img
+        slot="nav-logo"
+        style="margin-bottom: 0px; padding: 0px"
+        src="/docs/logo-api-doc-menu.png"
+      />
+    </rapi-doc>
+  </body>
+</html>
